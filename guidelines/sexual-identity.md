@@ -1,0 +1,6 @@
+Use "gay," "lesbian" or "bisexual" instead of "queer" or "homosexual." Some individuals and organizations openly embrace the use of "queer," reclaiming the word from its historical function as an offensive slur. If you are writing about individuals or organizations that prefer to be identified as queer, defer to thier language usage.
+use "LGBTQ+ community" instead of "gay community."
+use "sexual identity" instead of "sexual preference"
+use "marriage" instead of "same-sex marriage" or "gay marriage.". when generally referring to relationship, including marriage, do not use modifiers as they can suggest relationships, including marriage, do not use modifiers as they can suggest realtionship/marriage for same-sex couples is somehow different than other relationships/marriages. If clarity is needed, use "marriage for same-sex couples" or "marriage equality"
+use "parent" or "caregiver" instead of limiting heteronormative/gendered terms "mother" or "father" when broadly referring to parenthood and other caregiver roles. When creating forms, use "parent 1/parent 2" or "caregiver 1 /caregiver 2" rather than Mother/father.
+use "partner" or "spouse" instead of relying on heteronormative/gendered terms "wife" or "husband" when broadly referring to relationship.
