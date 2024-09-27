@@ -38,7 +38,15 @@ def generate_summary(text):
     response_data = response.json()
     return response_data['choices'][0]['message']['content']
  
+def clear_collection():
+    results = collection.get()
+    ids = [doc['id'] for doc in results['documents']]
+
+    for doc_id in ids:
+        collection.delete(ids=[doc_id])
+
 def store_summary_in_chroma(text, summary):
+    clear_collection()
     doc_id = str(uuid.uuid4())
     collection.add(
         ids=[doc_id],

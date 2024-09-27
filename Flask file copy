@@ -224,3 +224,212 @@ def log_email():
  
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    import os
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from werkzeug.utils import secure_filename
+from datetime import datetime
+ 
+# Lazy Imports: Import only when needed within specific routes to avoid loading everything upfront
+# from semantic_chat_boat_3 import answer_question, extract_text_from_pdf, generate_summary, store_summary_in_chroma
+# from extract_product_attributes_4 import get_product_details
+# from product_review_summary_5 import get_product_review
+# from code_optimisation_10 import optimize_code
+# from code_conversion_11 import convert_code
+# from Text_Language_Translator_13 import perform_translation
+# from image_to_text_6 import image_to_detailed_description
+# from QA_img_8 import answer_question_based_on_image
+# from code_Comment_16 import comment_code
+# from Proofread_Correct_Content_14 import process_text
+# from summarization_1 import answer_question_summ
+ 
+app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+ 
+# Constants
+UPLOAD_FOLDER = 'uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+ 
+# Ensure upload folder exists (only check this once at startup)
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+ 
+# Helper function to return success messages quickly and process in the background
+def background_task(target_func, *args, **kwargs):
+    import threading  # Imported locally to reduce initial load time
+    thread = threading.Thread(target=target_func, args=args, kwargs=kwargs)
+    thread.daemon = True
+    thread.start()
+    return thread
+ 
+@app.route('/upload-pdf', methods=['POST'])
+def upload_pdf():
+    if 'pdf_file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+ 
+    file = request.files['pdf_file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+ 
+    # Save file
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(file.filename))
+    file.save(file_path)
+ 
+    # Lazy import and processing function to avoid loading at startup
+    def process_pdf():
+        from semantic_chat_boat_3 import extract_text_from_pdf, generate_summary, store_summary_in_chroma
+        pdf_text = extract_text_from_pdf(file_path)
+        summary = generate_summary(pdf_text)
+        store_summary_in_chroma(pdf_text, summary)
+ 
+    background_task(process_pdf)
+    return jsonify({"message": "File uploaded and processing started"}), 200
+ 
+@app.route('/ask-question-sum', methods=['POST'])
+def ask_question_route_sum():
+    data = request.json
+    question = data.get('question', '')
+    if not question:
+        return jsonify({"error": "No question provided"}), 400
+ 
+    # Lazy import and execution of summarization function
+    from summarization_1 import answer_question_summ
+    answer = answer_question_summ(question)
+    return jsonify({"answer": answer})
+ 
+@app.route('/uploadimg', methods=['POST'])
+def upload_img():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+ 
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+ 
+    filename = secure_filename(file.filename)
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(file_path)
+ 
+    def process_image():
+        from image_to_text_6 import image_to_detailed_description
+        return image_to_detailed_description(file_path)
+ 
+    background_task(process_image)
+    return jsonify({'message': 'Image uploaded and processing started'}), 200
+ 
+@app.route("/optimize", methods=["POST"])
+def optimize_code_endpoint():
+    code = request.form.get("code")
+    model = request.form.get("model")
+    if not code or not model:
+        return jsonify({"error": "Code or model selection is missing"}), 400
+ 
+    from code_optimisation_10 import optimize_code  # Lazy import
+    try:
+        optimized_code = optimize_code(code, model)
+        return jsonify({"optimized_code": optimized_code})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+ 
+@app.route("/comment", methods=["POST"])
+def comment_code_route():
+    code = request.form.get("code")
+    model = request.form.get("model")
+    if not code or not model:
+        return jsonify({"error": "Code or model selection is missing"}), 400
+ 
+    from code_Comment_16 import comment_code  # Lazy import
+    try:
+        commented_code = comment_code(code, model)
+        return jsonify({"commented_code": commented_code})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+ 
+@app.route('/translate', methods=['POST'])
+def translate():
+    data = request.get_json()
+    model = data.get('model')
+    source_lang = data.get('sourceLanguage')
+    target_lang = data.get('targetLanguage')
+    text = data.get('text')
+ 
+    if not model or not source_lang or not target_lang or not text:
+        return jsonify({"error": "Missing parameters"}), 400
+ 
+    from Text_Language_Translator_13 import perform_translation  # Lazy import
+    translated_text = perform_translation(model, source_lang, target_lang, text)
+    return jsonify({"translated_text": translated_text})
+ 
+@app.route('/ask-question-image', methods=['POST'])
+def ask_question_image():
+    if 'image' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+ 
+    file = request.files['image']
+    question = request.form.get('question')
+ 
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+ 
+    filename = secure_filename(file.filename)
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(file_path)
+ 
+    from QA_img_8 import answer_question_based_on_image  # Lazy import
+    answer = answer_question_based_on_image(question, file_path)
+    return jsonify({'answer': answer}), 200
+ 
+@app.route('/files', methods=['GET'])
+def list_files():
+    try:
+        files = os.listdir(app.config['UPLOAD_FOLDER'])
+        return jsonify(files)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+ 
+@app.route('/delete-file', methods=['POST'])
+def delete_file():
+    file_name = request.json.get('file_name')
+    if not file_name:
+        return jsonify({"error": "No file name provided"}), 400
+ 
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], file_name)
+    try:
+        os.remove(file_path)
+        return jsonify({"message": "File deleted successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+ 
+@app.route('/log-email', methods=['POST'])
+def log_email():
+    data = request.get_json()
+    email = data.get('email')
+    if not email:
+        return jsonify({'error': 'Email is required'}), 400
+ 
+    with open('login_attempts.txt', 'a') as f:
+        f.write(f"{datetime.now()}: {email}\n")
+ 
+    return jsonify({'message': 'Email logged successfully'}), 200
+ 
+if __name__ == '__main__':
+    # Use `threaded=True` to improve performance with multiple requests
+    app.run(port=5000, debug=False, threaded=True)
